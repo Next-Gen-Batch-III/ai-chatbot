@@ -1,14 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 
 const QuickActions = ({ actions = [] }) => {
+  const [selected, setSelected] = useState(null);
+
   return (
-    <div className="flex flex-wrap justify-center gap-2 rounded-lg px-8 py-3">
+    <div className="flex w-fit flex-col gap-2 md:flex-row">
       {actions.map((action, index) => (
         <button
           key={`${action.label}-${index}`}
           type="button"
-          onClick={action.onClick}
-          className="rounded-[18px] rounded-br-[42px] bg-[#3B98FF] px-3 py-2 text-sm text-white shadow-sm hover:bg-[#2B7CD9] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          onClick={() => {
+            setSelected(index);
+            action.onClick?.();
+          }}
+          className={`w-fit whitespace-nowrap rounded-[12px] rounded-br-[28px] border-2 px-3 py-2 text-left text-sm shadow-sm transition
+            ${
+              selected === index
+                ? "border-blue-700 bg-blue-50 text-blue-700"
+                : "border-transparent bg-[#3B98FF] text-white hover:bg-[#2B7CD9] hover:shadow-md"
+            }
+          `}
         >
           {action.label}
         </button>
@@ -16,4 +27,5 @@ const QuickActions = ({ actions = [] }) => {
     </div>
   );
 };
+
 export default QuickActions;

@@ -210,7 +210,7 @@ const Sidebar = () => {
         </div>
        
        {/* Profile */}
-        <div className="shrink-0 p-2">
+        <div className="shrink-0 p-3">
 
           {isOpen ? (
             <button
