@@ -1,5 +1,4 @@
 import {useState} from 'react';
-
 import Sidebar from '../components/layout/Sidebar';
 import ChatInput from '../components/chat/ChatInput';
 import QuickActions from '../components/chat/QuickActions';
@@ -10,13 +9,19 @@ export default function Home({ user = { name: "Guest"}, onSend }) {
         onSend?.(label);
     };
     return (
-        <div className="flex h-full flex-1 flex-col items-center justify-center bg-white px-6">
-            <Sidebar user={user} />
-            <main className="chat">
-                <WelcomeMessage name={user.name} />
-                <ChatInput onSend={onSend} />
-                <QuickActions onAction={handleQuickAction} />
-            </main>
+        <div className="flex min-h-screen bg-white">
+           <Sidebar user={user} />
+                <main className="flex flex-1 flex-col items-center justify-center px-6 gap-6">
+                    <WelcomeMessage name={user.name} />
+                    <ChatInput onSend={onSend}/>
+                    <QuickActions
+                        actions={[
+                            { label: "Explain a concept", onClick: () => handleQuickAction("Explain a concept") },
+                            { label: "Project guide", onClick: () => handleQuickAction("Project guide") },
+                            { label: "Give me  project ideas", onClick: () => handleQuickAction("Give me  project ideas") },
+                        ]}
+                    />
+                </main>
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import LogoImg from "../assets/logo.png";
+import LogoImg from "../../assets/images/logo.png";
 import {
   CirclePlus,
   Briefcase,
@@ -41,7 +41,7 @@ const Sidebar = () => {
       {!isMobileOpen && (
         <button
           onClick={() => setIsMobileOpen(true)}
-          className="fixed left-4 top-4 z-50 rounded-lg px-3 py-1.5 text-white bg-blue-500 rounded-br-[32px] rounded-tl-[18px] rounded-bl-[12px] rounded-tr-[12px] md:hidden"
+          className="fixed left-4 top-4 z-50 rounded-lg px-3 py-1.5 text-white bg-[#3B98FF] rounded-br-[32px] rounded-tl-[18px] rounded-bl-[12px] rounded-tr-[12px] md:hidden"
         >
           <Menu size={22} className="rounded-br-[38px]" />
         </button>
