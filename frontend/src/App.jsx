@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import './App.css'
-import Sidebar from './components/Sidebar'
+import Home from './pages/Home.jsx'
 
 function App() {
 
   return (
     <>
-    <Sidebar/>
+      <Home />
     </>
   )
 }
