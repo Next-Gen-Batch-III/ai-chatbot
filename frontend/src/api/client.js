@@ -9,15 +9,35 @@ export const apiClient = axios.create({
   headers: { Accept: "application/json" },
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
+let authInterceptorId;
 
-  if (!config.skipAuth && token && token !== "null") {
-    config.headers.Authorization = `Bearer ${token}`;
+export const configureAuthInterceptor = (getToken) => {
+  if (authInterceptorId !== undefined) {
+    apiClient.interceptors.request.eject(authInterceptorId);
   }
 
-  return config;
-});
+  const interceptorId = apiClient.interceptors.request.use(async (config) => {
+    if (!config.skipAuth) {
+      const token = await getToken();
+
+      if (token) {
+        config.headers ??= {};
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
+    return config;
+  });
+
+  authInterceptorId = interceptorId;
+
+  return () => {
+    if (authInterceptorId === interceptorId) {
+      apiClient.interceptors.request.eject(interceptorId);
+      authInterceptorId = undefined;
+    }
+  };
+};
 
 apiClient.interceptors.response.use(
   (response) => response,
