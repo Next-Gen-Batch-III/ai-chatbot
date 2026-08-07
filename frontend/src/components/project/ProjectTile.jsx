@@ -6,21 +6,27 @@ export default function ProjectTile({ variant = "project", label, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex h-[90px] w-[90px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl px-2 text-center transition-colors
-        ${
-          isAdd
-            ? "border-2 border-dashed border-gray-200 hover:border-[#3B98FF] hover:bg-blue-50"
-            : "bg-gray-100 hover:bg-gray-200"
-        }`}
-    >
-      <span
-        className={`flex h-9 w-9 items-center justify-center rounded-full ${
-          isAdd ? "bg-gray-100 text-gray-500" : "bg-white text-gray-600"
-        }`}
-      >
-        {isAdd ? <FiPlus size={16} /> : <FiFileText size={16} />}
+      className="w-20 h-20 rounded-lg transition-all flex flex-col items-center justify-center">
+
+      <div className="w-10 h-10 mb-2 flex items-center justify-center rounded-full bg-white">
+        {isAdd ? (
+          <FiPlus
+            size={24}
+            strokeWidth={1.8}
+            className="text-gray-700"
+          />
+        ) : (
+          <FiFileText
+            size={22}
+            strokeWidth={1.8}
+            className="text-gray-600"
+          />
+        )}
+      </div>
+      
+      <span className="text-[11px] text-gray-700 text-center leading-tight px-1">
+        {isAdd ? "Add new" : label}
       </span>
-      <span className="line-clamp-2 text-xs text-gray-600">{label}</span>
     </button>
   );
 }
