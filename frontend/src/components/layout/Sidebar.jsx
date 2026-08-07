@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import LogoImg from "../../assets/images/logo.png";
+import ProjectModal from "../../components/project/ProjectModal";
+
 import {
   CirclePlus,
   Briefcase,
@@ -15,6 +17,7 @@ import {
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
   const pinnedChats = [
     "What is DML Theme?",
@@ -116,8 +119,9 @@ const Sidebar = () => {
             )}
           </button>
 
-          {/* Projects */}
+         {/* Projects */}
           <button
+            onClick={() => setIsProjectModalOpen(true)}
             className={`
               mb-2 flex w-full items-center rounded-lg py-1.5 text-sm
               hover:bg-blue-400
@@ -126,11 +130,7 @@ const Sidebar = () => {
           >
             <Briefcase size={18} />
 
-            {isOpen && (
-              <span>
-                Projects
-              </span>
-            )}
+            {isOpen && <span>Projects</span>}
           </button>
 
           {/* History */}
@@ -262,6 +262,13 @@ const Sidebar = () => {
         </div>
 
       </aside>
+
+      {/* Project Modal */}
+      {isProjectModalOpen && (
+        <ProjectModal
+          onClose={() => setIsProjectModalOpen(false)}
+        />
+      )}
     </>
   );
 };
