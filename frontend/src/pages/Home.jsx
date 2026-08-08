@@ -143,7 +143,7 @@ const handleNewChat = () => {
 };
 
   return (
-    <div className="flex h-full bg-white">
+    <div className="flex min-h-screen w-full bg-white">
       {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}
@@ -164,11 +164,7 @@ const handleNewChat = () => {
       />
 
       <main
-        className={`
-          flex min-h-screen flex-1 flex-col
-          transition-all duration-300
-          ${sidebarOpen ? "md:ml-64" : "md:ml-16"}
-        `}
+        className="flex min-h-screen min-w-0 flex-1 flex-col"
       >
         {messages.length === 0 ? (
           /* ================= EMPTY CHAT ================= */

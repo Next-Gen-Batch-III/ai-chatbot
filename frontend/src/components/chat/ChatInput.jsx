@@ -23,7 +23,7 @@ const ChatInput = ({ onSend }) => {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Ask anything about DMIL"
-          className="flex-1 bg-transparent px-3 text-sm outline-none"
+          className="flex-1 bg-transparent px-3 text-sm text-gray-950 placeholder:text-gray-500 outline-none dark:text-gray-950 dark:placeholder:text-gray-500"
         />
 
         {/* Submit button */}

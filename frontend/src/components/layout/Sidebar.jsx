@@ -51,14 +51,14 @@ const Sidebar = ({
         className={`
           fixed left-0 top-0 z-40 flex h-screen
           flex-col rounded-br-[48px] bg-[#3B98FF]
-          text-white transition-all duration-300
-          w-[80vw]
+          text-white transition-[width,transform] duration-300
+          w-[80vw] shrink-0
 
           ${isOpen ? "md:w-64" : "md:w-16"}
 
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
 
-          md:translate-x-0
+          md:static md:translate-x-0
         `}
       >
         {/* Logo + Menu */}
