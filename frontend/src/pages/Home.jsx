@@ -67,8 +67,8 @@ export default function Home({ onSend }) {
               ...chat,
               pinned: !chat.pinned,
             }
-          : chat
-      )
+          : chat,
+      ),
     );
   };
   const [signInOpen, setSignInOpen] = useState(false);
@@ -118,45 +118,39 @@ export default function Home({ onSend }) {
                 },
               ],
             }
-          : project
-      )
+          : project,
+      ),
     );
   };
 
   const [messages, setMessages] = useState([]);
   const handleSend = (message) => {
-  if (!message.trim()) return;
+    if (!message.trim()) return;
 
-  setMessages((prev) => [
-    ...prev,
-    {
-      id: crypto.randomUUID(),
-      message,
-      sender: "user",
-    },
-  ]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        message,
+        sender: "user",
+      },
+    ]);
 
-  onSend?.(message);
-};
-const handleNewChat = () => {
-  setMessages([]);
-};
+    onSend?.(message);
+  };
+  const handleNewChat = () => {
+    setMessages([]);
+  };
 
   return (
     <div className="flex h-full bg-white">
       {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}
-        onToggle={() =>
-          setSidebarOpen((open) => !open)
-        }
+        onToggle={() => setSidebarOpen((open) => !open)}
         onNewChat={handleNewChat}
-        onProjectsClick={() =>
-          setProjectsOpen(true)
-        }
-        onHistoryClick={() =>
-          setHistoryOpen(true)
-        }
+        onProjectsClick={() => setProjectsOpen(true)}
+        onHistoryClick={() => setHistoryOpen(true)}
         pinnedChats={pinnedChats}
         recentChats={recentChats}
         onTogglePin={handleTogglePin}
@@ -191,18 +185,15 @@ const handleNewChat = () => {
                 actions={[
                   {
                     label: "Explain a concept",
-                    onClick: () =>
-                      handleQuickAction("Explain a concept"),
+                    onClick: () => handleQuickAction("Explain a concept"),
                   },
                   {
                     label: "Project guide",
-                    onClick: () =>
-                      handleQuickAction("Project guide"),
+                    onClick: () => handleQuickAction("Project guide"),
                   },
                   {
                     label: "Give me project ideas",
-                    onClick: () =>
-                      handleQuickAction("Give me project ideas"),
+                    onClick: () => handleQuickAction("Give me project ideas"),
                   },
                 ]}
               />
@@ -211,7 +202,6 @@ const handleNewChat = () => {
         ) : (
           /* ================= CHAT MODE ================= */
           <div className="flex min-h-screen flex-col">
-            
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-6 py-6">
               <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
@@ -239,30 +229,17 @@ const handleNewChat = () => {
       {projectsOpen && (
         <ProjectModal
           projects={projects}
-          onClose={() =>
-            setProjectsOpen(false)
-          }
+          onClose={() => setProjectsOpen(false)}
           onCreateProject={handleCreateProject}
           onSendInProject={handleSendInProject}
           onSelectChat={(projectId, chatId) =>
-            console.log(
-              "Open chat:",
-              chatId,
-              "in project:",
-              projectId
-            )
+            console.log("Open chat:", chatId, "in project:", projectId)
           }
         />
       )}
 
       {/* History Modal */}
-      {historyOpen && (
-        <History
-          onClose={() =>
-            setHistoryOpen(false)
-          }
-        />
-      )}
+      {historyOpen && <History onClose={() => setHistoryOpen(false)} />}
       {signInOpen && (
         <div
           className="

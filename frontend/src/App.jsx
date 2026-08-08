@@ -1,16 +1,22 @@
-import { useEffect } from 'react'
-import { useAuth } from '@clerk/clerk-react'
-import './App.css'
-import Home from './pages/Home.jsx'
-import { configureAuthInterceptor } from './api/client'
+import { useEffect } from "react";
+import { useAuth } from "@clerk/clerk-react";
+import "./App.css";
+import Home from "./pages/Home.jsx";
+import { configureAuthInterceptor } from "./api/client";
+import { configureSseAuth } from "./api/sseClient";
 
 function App() {
-  const { getToken } = useAuth()
+  const { getToken } = useAuth();
 
-  useEffect(() => configureAuthInterceptor(getToken), [getToken])
+  useEffect(() => {
+    const cleanupAxios = configureAuthInterceptor(getToken);
+    const cleanupSse = configureSseAuth(getToken);
+    return () => {
+      cleanupAxios();
+      cleanupSse();
+    };
+  }, [getToken]);
 
-  return (
-    <Home />
-  )
+  return <Home />;
 }
-export default App
+export default App;
