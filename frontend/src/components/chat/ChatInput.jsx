@@ -3,18 +3,21 @@ import { PenIcon, Check } from "lucide-react";
 
 const ChatInput = ({ onSend }) => {
   const [inputValue, setInputValue] = useState("");
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (inputValue.trim()) {
-      onSend?.(inputValue);
+      onSend?.(inputValue.trim());
       setInputValue("");
     }
   };
+
   const hasText = inputValue.trim().length > 0;
+
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-xl">
-      <div className="flex items-center rounded-[28px] bg-gray-200 px-2 py-1.5 shadow-sm">
+      <div className="flex items-center gap-2 rounded-full bg-gray-200 px-3 py-2 shadow-sm">
         <input
           type="text"
           value={inputValue}
@@ -45,4 +48,3 @@ const ChatInput = ({ onSend }) => {
 };
 
 export default ChatInput;
-
