@@ -10,9 +10,7 @@ function App() {
   useEffect(() => configureAuthInterceptor(getToken), [getToken])
 
   return (
-    <>
-      <Home />
-    </>
+    <Home />
   )
 }
 export default App
