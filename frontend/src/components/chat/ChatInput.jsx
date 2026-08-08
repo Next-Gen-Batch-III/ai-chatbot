@@ -31,9 +31,7 @@ const ChatInput = ({ onSend }) => {
           type="submit"
           disabled={!hasText}
           className={`rounded-full p-2 transition ${
-            hasText
-              ? "bg-[#3B98FF] hover:bg-[#2B7CD9]"
-              : "bg-[#3B98FF]"
+            hasText ? "bg-[#3B98FF] hover:bg-[#2B7CD9]" : "bg-[#3B98FF]"
           }`}
         >
           {hasText ? (
