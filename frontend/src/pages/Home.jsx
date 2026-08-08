@@ -8,6 +8,7 @@ import WelcomeMessage from "../components/chat/WelcomeMessage";
 import ProjectModal from "../components/project/ProjectModal";
 import History from "../components/chat/History";
 import SignInCard from "../components/auth/Signincard";
+import MessageBox from "../components/chat/MessageBox";
 
 const SAMPLE_PROJECTS = [
   {
@@ -80,7 +81,7 @@ export default function Home({ onSend }) {
 
   /* Quick Actions */
   const handleQuickAction = (label) => {
-    onSend?.(label);
+    handleSend(label);
   };
 
   /* User Data */
@@ -122,6 +123,25 @@ export default function Home({ onSend }) {
     );
   };
 
+  const [messages, setMessages] = useState([]);
+  const handleSend = (message) => {
+  if (!message.trim()) return;
+
+  setMessages((prev) => [
+    ...prev,
+    {
+      id: crypto.randomUUID(),
+      message,
+      sender: "user",
+    },
+  ]);
+
+  onSend?.(message);
+};
+const handleNewChat = () => {
+  setMessages([]);
+};
+
   return (
     <div className="flex h-full bg-white">
       {/* Sidebar */}
@@ -130,7 +150,7 @@ export default function Home({ onSend }) {
         onToggle={() =>
           setSidebarOpen((open) => !open)
         }
-        onNewChat={() => onSend?.("")}
+        onNewChat={handleNewChat}
         onProjectsClick={() =>
           setProjectsOpen(true)
         }
@@ -143,55 +163,76 @@ export default function Home({ onSend }) {
         onSignInClick={() => setSignInOpen(true)}
       />
 
-      {/* Main Content */}
       <main
         className={`
-          flex min-h-screen flex-1
-          flex-col items-center
-          justify-end
-          gap-6 px-6 pb-10
+          flex min-h-screen flex-1 flex-col
           transition-all duration-300
-
-          md:justify-center
-          md:pb-0
-
           ${sidebarOpen ? "md:ml-64" : "md:ml-16"}
         `}
       >
-        {/* Welcome */}
-        <WelcomeMessage name={userData.name} />
+        {messages.length === 0 ? (
+          /* ================= EMPTY CHAT ================= */
+          <div
+            className="
+              flex flex-1 flex-col items-center justify-end
+              gap-6 px-6 pb-10
+              md:justify-center md:pb-0
+            "
+          >
+            {/* Welcome */}
+            <WelcomeMessage name={userData.name} />
 
-        {/* Chat Input */}
-        <ChatInput onSend={onSend} />
+            {/* Chat Input */}
+            <ChatInput onSend={handleSend} />
 
-        {/* Quick Actions */}
-        <div className="self-start sm:self-auto">
-          <QuickActions
-            actions={[
-              {
-                label: "Explain a concept",
-                onClick: () =>
-                  handleQuickAction(
-                    "Explain a concept"
-                  ),
-              },
-              {
-                label: "Project guide",
-                onClick: () =>
-                  handleQuickAction(
-                    "Project guide"
-                  ),
-              },
-              {
-                label: "Give me project ideas",
-                onClick: () =>
-                  handleQuickAction(
-                    "Give me project ideas"
-                  ),
-              },
-            ]}
-          />
-        </div>
+            {/* Quick Actions */}
+            <div className="self-start sm:self-auto">
+              <QuickActions
+                actions={[
+                  {
+                    label: "Explain a concept",
+                    onClick: () =>
+                      handleQuickAction("Explain a concept"),
+                  },
+                  {
+                    label: "Project guide",
+                    onClick: () =>
+                      handleQuickAction("Project guide"),
+                  },
+                  {
+                    label: "Give me project ideas",
+                    onClick: () =>
+                      handleQuickAction("Give me project ideas"),
+                  },
+                ]}
+              />
+            </div>
+          </div>
+        ) : (
+          /* ================= CHAT MODE ================= */
+          <div className="flex min-h-screen flex-col">
+            
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
+                {messages.map((message) => (
+                  <MessageBox
+                    key={message.id}
+                    message={message.message}
+                    sender={message.sender}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Chat Input - stays at bottom */}
+            <div className="shrink-0 px-6 pb-6">
+              <div className="mx-auto w-full max-w-3xl">
+                <ChatInput onSend={handleSend} />
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Project Modal */}
