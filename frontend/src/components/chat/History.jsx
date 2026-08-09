@@ -1,17 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import {
   X,
   MessageSquare,
   ChevronDown,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { getChats } from "../../api/index.js";
 
 export default function History({
-  chats = [],
   onClose,
   onSelectChat,
 }) {
   const [showFilter, setShowFilter] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const [chats, setChats] = useState([]);
+
+  const navigate = useNavigate();
 
   const filterOptions = [
     "All",
@@ -22,17 +27,30 @@ export default function History({
     "Last 4 weeks",
   ];
 
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const response = await getChats();
+        setChats(response.data.data.chats);
+      } catch (error) {
+        console.error("Error fetching chats:", error);
+      }
+    };
+
+    fetchChats();
+  }, []);
+
   /*
    * Filter chats 
    */
   const filteredChats = chats.filter((chat) => {
-    if (!chat.created_at) return false;
+    if (!chat.lastMessageAt) return false;
 
     if (selectedFilter === "All") {
       return true;
     }
 
-    const chatDate = new Date(chat.created_at);
+    const chatDate = new Date(chat.lastMessageAt);
     const now = new Date();
 
     const difference = now - chatDate;
@@ -67,8 +85,8 @@ export default function History({
    */
   const sortedChats = [...filteredChats].sort(
     (a, b) =>
-      new Date(b.created_at) -
-      new Date(a.created_at)
+      new Date(b.lastMessageAt) -
+      new Date(a.lastMessageAt)
   );
 
   /*
@@ -85,7 +103,7 @@ export default function History({
    */
   const groupedChats = sortedChats.reduce(
     (groups, chat) => {
-      const key = getDateKey(chat.created_at);
+      const key = getDateKey(chat.lastMessageAt);
 
       if (!groups[key]) {
         groups[key] = [];
@@ -131,6 +149,12 @@ export default function History({
       year: "numeric",
     });
   };
+
+  const handleSelectChat = (chat) => {
+    navigate(`/chat/${chat.id}`);
+    onSelectChat?.(chat);
+    onClose();
+  }
 
   return (
     /*
@@ -289,7 +313,7 @@ export default function History({
                 ([dateKey, dateChats]) => {
 
                   const date =
-                    dateChats[0].created_at;
+                    dateChats[0].lastMessageAt;
 
                   return (
                     <div key={dateKey}>
@@ -313,7 +337,7 @@ export default function History({
                               key={chat.id}
                               type="button"
                               onClick={() =>
-                                onSelectChat?.(
+                                handleSelectChat(
                                   chat
                                 )
                               }

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import LogoImg from "../../assets/images/logo.png";
-import SigninCard from "../auth/SigninCard";
+import SigninCard from "../auth/AccountCard";
 import { useUser } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 
 import {
   CirclePlus,
@@ -32,6 +33,9 @@ const Sidebar = ({
   const [isRecentOpen, setIsRecentOpen] = useState(true);
 
   const { isSignedIn, user } = useUser();
+
+  const navigate = useNavigate();
+
 
   return (
     <>
@@ -285,6 +289,7 @@ const Sidebar = ({
                       py-1.5 text-left text-xs
                       ${isOpen ? "gap-2 px-3" : "justify-center"}
                     `}
+                    onClick={() => navigate(`/chat/${chat.id}`)}
                   >
                     <StickyNote size={14} />
 

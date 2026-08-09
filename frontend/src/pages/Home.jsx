@@ -1,5 +1,6 @@
 import { useUser } from "@clerk/clerk-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/layout/Sidebar";
 import ChatInput from "../components/chat/ChatInput";
@@ -7,8 +8,12 @@ import QuickActions from "../components/chat/QuickActions";
 import WelcomeMessage from "../components/chat/WelcomeMessage";
 import ProjectModal from "../components/project/ProjectModal";
 import History from "../components/chat/History";
-import SignInCard from "../components/auth/Signincard";
+import AccountCard from "../components/auth/AccountCard.jsx";
 import MessageBox from "../components/chat/MessageBox";
+
+import { getChats, getChatMessages, toggleChatPin } from "../api/index.js";
+import { sseClient } from "../api/sseClient.js";
+import { useToast } from "../hooks/useToast";
 
 const SAMPLE_PROJECTS = [
   {
@@ -31,45 +36,63 @@ const SAMPLE_PROJECTS = [
   },
 ];
 
-export default function Home({ onSend }) {
+export default function Home() {
+  const { chatId } = useParams();
+  const navigate = useNavigate();
+  const toast = useToast();
+
   const { user } = useUser();
 
   /* Sidebar */
   const [sidebarOpen, setSidebarOpen] = useState(true);
   /* Sidebar Chats */
-  const [chats, setChats] = useState([
-    {
-      id: "chat-1",
-      title: "What is DMIL Theme?",
-      pinned: false,
-    },
-    {
-      id: "chat-2",
-      title: "What is DMIL Theme?",
-      pinned: false,
-    },
-    {
-      id: "chat-3",
-      title: "What is DMIL Theme?",
-      pinned: false,
-    },
-  ]);
+  const [chats, setChats] = useState([]);
 
-  const pinnedChats = chats.filter((chat) => chat.pinned);
+  const [pinnedChats, setPinnedChats] = useState([]);
 
   const recentChats = chats.filter((chat) => !chat.pinned);
 
-  const handleTogglePin = (chatId) => {
-    setChats((prevChats) =>
-      prevChats.map((chat) =>
-        chat.id === chatId
-          ? {
-              ...chat,
-              pinned: !chat.pinned,
-            }
-          : chat,
-      ),
-    );
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const response = await getChats({ projectId: "null", limit: 10 });
+        if (response.data.data.chats) {
+          setChats(response.data.data.chats.filter((chat) => !chat.isPinned));
+          setPinnedChats(
+            response.data.data.chats.filter((chat) => chat.isPinned),
+          );
+        }
+      } catch (error) {
+        toast.error(error.message ?? "Failed to load chats.");
+      }
+    };
+
+    fetchChats();
+  }, [chatId]);
+
+  const handleTogglePin = async (chatId) => {
+    try {
+      const response = await toggleChatPin(chatId);
+      if (response.data.data) {
+        const updatedChat = response.data.data;
+        setChats((prevChats) => {
+          if (!updatedChat.isPinned) {
+            return [...prevChats, updatedChat];
+          } else {
+            return prevChats.filter((chat) => chat.id !== updatedChat.id);
+          }
+        });
+        setPinnedChats((prevPinnedChats) => {
+          if (updatedChat.isPinned) {
+            return [...prevPinnedChats, updatedChat];
+          } else {
+            return prevPinnedChats.filter((chat) => chat.id !== updatedChat.id);
+          }
+        });
+      }
+    } catch (error) {
+      toast.error(error.message ?? "Failed to toggle pin.");
+    }
   };
   const [signInOpen, setSignInOpen] = useState(false);
   /* Project Modal */
@@ -122,24 +145,105 @@ export default function Home({ onSend }) {
       ),
     );
   };
-
   const [messages, setMessages] = useState([]);
-  const handleSend = (message) => {
-    if (!message.trim()) return;
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  const abortRef = useRef(null);
+  const scrollRef = useRef(null);
+  const newChatIdRef = useRef(null);
+
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (chatId) {
+        try {
+          const response = await getChatMessages(chatId);
+          if (response.data.data) {
+            setMessages(response.data.data);
+          }
+        } catch (error) {
+          toast.error(error.message ?? "Failed to load messages.");
+        }
+      }
+    };
+
+    fetchMessages();
+  }, [chatId]);
+
+  const handleSend = async (prompt) => {
+    if (!prompt.trim() || isStreaming) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setMessages((prev) => [
       ...prev,
-      {
-        id: crypto.randomUUID(),
-        message,
-        sender: "user",
-      },
+      { id: crypto.randomUUID(), content: prompt, type: "USER_INPUT" },
     ]);
 
-    onSend?.(message);
+    const assistantId = crypto.randomUUID();
+    setMessages((prev) => [
+      ...prev,
+      { id: assistantId, content: "", type: "MODEL_OUTPUT" },
+    ]);
+
+    setIsStreaming(true);
+    newChatIdRef.current = null;
+    const apiRoute = chatId ? `/api/chats/${chatId}/messages` : "/api/chats";
+
+    try {
+      await sseClient.post(
+        apiRoute,
+        { prompt },
+        {
+          signal: controller.signal,
+          onEvent(event) {
+            if (event.type === "start" && !chatId) {
+              // Don't navigate yet — that would remount the component and
+              // trigger the cleanup abort, killing the stream mid-way.
+              // Store the chatId and navigate after the stream finishes.
+              newChatIdRef.current = event.chatId;
+            }
+
+            if (event.type === "text") {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId
+                    ? { ...m, content: m.content + event.content }
+                    : m,
+                ),
+              );
+            }
+          },
+        },
+      );
+
+      if (newChatIdRef.current) {
+        navigate(`/chat/${newChatIdRef.current}`, { replace: true });
+      }
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      // Remove the empty assistant placeholder and show the error as a toast.
+      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+      toast.error(err.message ?? "Failed to get a response.");
+    } finally {
+      setIsStreaming(false);
+    }
   };
   const handleNewChat = () => {
     setMessages([]);
+    navigate("/");
   };
 
   return (
@@ -157,9 +261,7 @@ export default function Home({ onSend }) {
         onSignInClick={() => setSignInOpen(true)}
       />
 
-      <main
-        className="flex min-h-screen min-w-0 flex-1 flex-col"
-      >
+      <main className="flex min-h-screen min-w-0 flex-1 flex-col">
         {messages.length === 0 ? (
           /* ================= EMPTY CHAT ================= */
           <div
@@ -173,7 +275,7 @@ export default function Home({ onSend }) {
             <WelcomeMessage name={userData.name} />
 
             {/* Chat Input */}
-            <ChatInput onSend={handleSend} />
+            <ChatInput onSend={handleSend} disabled={isStreaming} />
 
             {/* Quick Actions */}
             <div className="self-start sm:self-auto">
@@ -197,15 +299,15 @@ export default function Home({ onSend }) {
           </div>
         ) : (
           /* ================= CHAT MODE ================= */
-          <div className="flex min-h-screen flex-col">
+          <div className="flex h-screen flex-col overflow-y-hidden">
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-6 py-6">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
               <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
                 {messages.map((message) => (
                   <MessageBox
                     key={message.id}
-                    message={message.message}
-                    sender={message.sender}
+                    message={message.content}
+                    sender={message.type}
                   />
                 ))}
               </div>
@@ -214,7 +316,7 @@ export default function Home({ onSend }) {
             {/* Chat Input - stays at bottom */}
             <div className="shrink-0 px-6 pb-6">
               <div className="mx-auto w-full max-w-3xl">
-                <ChatInput onSend={handleSend} />
+                <ChatInput onSend={handleSend} disabled={isStreaming} />
               </div>
             </div>
           </div>
@@ -247,13 +349,7 @@ export default function Home({ onSend }) {
           onClick={() => setSignInOpen(false)}
         >
           <div onClick={(e) => e.stopPropagation()}>
-            <SignInCard
-              onClose={() => setSignInOpen(false)}
-              onContinueWithGoogle={() => {
-                setSignInOpen(false);
-                openSignIn();
-              }}
-            />
+            <AccountCard onClose={() => setSignInOpen(false)} />
           </div>
         </div>
       )}

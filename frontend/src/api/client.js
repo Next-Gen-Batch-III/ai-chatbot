@@ -9,36 +9,52 @@ export const apiClient = axios.create({
   headers: { Accept: "application/json" },
 });
 
-let authInterceptorId;
+// ---------------------------------------------------------------------------
+// Auth — mutable ref pattern
+//
+// The interceptor is registered ONCE at module load time and always reads
+// from `getTokenRef`. configureAuthInterceptor() just swaps the ref so there
+// is never a window between eject and re-add where requests go header-less.
+// ---------------------------------------------------------------------------
+let getTokenRef = null;
 
-export const configureAuthInterceptor = (getToken) => {
-  if (authInterceptorId !== undefined) {
-    apiClient.interceptors.request.eject(authInterceptorId);
-  }
-
-  const interceptorId = apiClient.interceptors.request.use(async (config) => {
-    if (!config.skipAuth) {
-      const token = await getToken();
+apiClient.interceptors.request.use(async (config) => {
+  if (!config.skipAuth && getTokenRef) {
+    try {
+      const token = await getTokenRef();
 
       if (token) {
-        config.headers ??= {};
         config.headers.Authorization = `Bearer ${token}`;
       }
+    } catch (err) {
+      console.warn(
+        "[apiClient] getToken() threw — sending request without auth:",
+        err,
+      );
     }
+  }
 
-    return config;
-  });
+  return config;
+});
 
-  authInterceptorId = interceptorId;
+/**
+ * Call once in App.jsx with Clerk's getToken from useAuth().
+ * Returns a cleanup function that clears the ref (safe to use as useEffect return).
+ */
+export const configureAuthInterceptor = (getToken) => {
+  getTokenRef = getToken;
 
   return () => {
-    if (authInterceptorId === interceptorId) {
-      apiClient.interceptors.request.eject(interceptorId);
-      authInterceptorId = undefined;
+    // Only clear if this call is still the active one.
+    if (getTokenRef === getToken) {
+      getTokenRef = null;
     }
   };
 };
 
+// ---------------------------------------------------------------------------
+// Response — error normalisation + 401 redirect
+// ---------------------------------------------------------------------------
 apiClient.interceptors.response.use(
   (response) => response,
 
