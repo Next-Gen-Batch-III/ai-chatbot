@@ -11,30 +11,16 @@ import History from "../components/chat/History";
 import AccountCard from "../components/auth/AccountCard.jsx";
 import MessageBox from "../components/chat/MessageBox";
 
-import { getChats, getChatMessages, toggleChatPin } from "../api/index.js";
+import {
+  createProject,
+  getChats,
+  getChatMessages,
+  getProjects,
+  toggleChatPin,
+  updateChat,
+} from "../api/index.js";
 import { sseClient } from "../api/sseClient.js";
 import { useToast } from "../hooks/useToast";
-
-const SAMPLE_PROJECTS = [
-  {
-    id: "dmil-project",
-    name: "DMIL Project",
-    chats: [
-      {
-        id: "p-chat-1",
-        title: "What is DMIL Theme?",
-      },
-      {
-        id: "p-chat-2",
-        title: "What is DMIL Theme?",
-      },
-      {
-        id: "p-chat-3",
-        title: "What is DMIL Theme?",
-      },
-    ],
-  },
-];
 
 export default function Home() {
   const { chatId } = useParams();
@@ -55,7 +41,7 @@ export default function Home() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await getChats({ projectId: "null", limit: 10 });
+        const response = await getChats({ limit: 10 });
         if (response.data.data.chats) {
           setChats(response.data.data.chats.filter((chat) => !chat.isPinned));
           setPinnedChats(
@@ -97,7 +83,7 @@ export default function Home() {
   const [signInOpen, setSignInOpen] = useState(false);
   /* Project Modal */
   const [projectsOpen, setProjectsOpen] = useState(false);
-  const [projects, setProjects] = useState(SAMPLE_PROJECTS);
+  const [projects, setProjects] = useState([]);
 
   /* History Modal */
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -114,38 +100,71 @@ export default function Home() {
     imageUrl: user?.imageUrl,
   };
 
-  /* Create Project */
-  const handleCreateProject = (name) => {
-    setProjects((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        name,
-        chats: [],
-      },
-    ]);
+  useEffect(() => {
+    if (!projectsOpen) return;
+
+    const fetchProjects = async () => {
+      try {
+        const response = await getProjects();
+        const projectList = response.data.data ?? [];
+        const projectsWithChats = await Promise.all(
+          projectList.map(async (project) => {
+            const chatsResponse = await getChats({ projectId: project.id, limit: 100 });
+            return {
+              ...project,
+              name: project.title,
+              chats: chatsResponse.data.data.chats ?? [],
+            };
+          }),
+        );
+        setProjects(projectsWithChats);
+      } catch (error) {
+        toast.error(error.message ?? "Failed to load projects.");
+      }
+    };
+
+    fetchProjects();
+  }, [projectsOpen]);
+
+  const handleCreateProject = async (title) => {
+    try {
+      const response = await createProject({ title });
+      const project = response.data.data;
+      setProjects((previousProjects) => [
+        ...previousProjects,
+        { ...project, name: project.title, chats: [] },
+      ]);
+      return true;
+    } catch (error) {
+      toast.error(error.message ?? "Failed to create project.");
+      return false;
+    }
   };
 
-  /* Send Message Inside Project */
-  const handleSendInProject = (projectId, message) => {
-    setProjects((prev) =>
-      prev.map((project) =>
-        project.id === projectId
-          ? {
-              ...project,
-              chats: [
-                ...project.chats,
-                {
-                  id: crypto.randomUUID(),
-                  title: message,
-                },
-              ],
-            }
-          : project,
-      ),
-    );
+  const handleAddChatToProject = async (projectId, chatId) => {
+    try {
+      const response = await updateChat(chatId, { projectId });
+      const updatedChat = response.data.data;
+
+      setChats((previousChats) =>
+        previousChats.map((chat) => (chat.id === chatId ? updatedChat : chat)),
+      );
+      setPinnedChats((previousChats) =>
+        previousChats.map((chat) => (chat.id === chatId ? updatedChat : chat)),
+      );
+      setProjects((previousProjects) =>
+        previousProjects.map((project) =>
+          project.id === projectId
+            ? { ...project, chats: [...project.chats, updatedChat] }
+            : project,
+        ),
+      );
+    } catch (error) {
+      toast.error(error.message ?? "Failed to add chat to project.");
+    }
   };
   const [messages, setMessages] = useState([]);
+  const [loadedChatId, setLoadedChatId] = useState(null);
   const [isStreaming, setIsStreaming] = useState(false);
 
   const abortRef = useRef(null);
@@ -164,20 +183,36 @@ export default function Home() {
   }, [messages]);
 
   useEffect(() => {
+    let isCurrentChat = true;
+
+    abortRef.current?.abort();
+    newChatIdRef.current = null;
+
     const fetchMessages = async () => {
-      if (chatId) {
-        try {
-          const response = await getChatMessages(chatId);
-          if (response.data.data) {
-            setMessages(response.data.data);
-          }
-        } catch (error) {
+      if (!chatId) return;
+
+      try {
+        const response = await getChatMessages(chatId);
+        const chatMessages = Array.isArray(response.data)
+          ? response.data
+          : (response.data.data ?? []);
+
+        if (isCurrentChat) {
+          setMessages(chatMessages);
+          setLoadedChatId(chatId);
+        }
+      } catch (error) {
+        if (isCurrentChat) {
           toast.error(error.message ?? "Failed to load messages.");
         }
       }
     };
 
     fetchMessages();
+
+    return () => {
+      isCurrentChat = false;
+    };
   }, [chatId]);
 
   const handleSend = async (prompt) => {
@@ -243,8 +278,11 @@ export default function Home() {
   };
   const handleNewChat = () => {
     setMessages([]);
+    setLoadedChatId(null);
     navigate("/");
   };
+
+  const activeMessages = loadedChatId === chatId ? messages : [];
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -262,7 +300,7 @@ export default function Home() {
       />
 
       <main className="flex min-h-screen min-w-0 flex-1 flex-col">
-        {messages.length === 0 ? (
+        {activeMessages.length === 0 ? (
           /* ================= EMPTY CHAT ================= */
           <div
             className="
@@ -303,7 +341,7 @@ export default function Home() {
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
               <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
-                {messages.map((message) => (
+                {activeMessages.map((message) => (
                   <MessageBox
                     key={message.id}
                     message={message.content}
@@ -329,10 +367,12 @@ export default function Home() {
           projects={projects}
           onClose={() => setProjectsOpen(false)}
           onCreateProject={handleCreateProject}
-          onSendInProject={handleSendInProject}
-          onSelectChat={(projectId, chatId) =>
-            console.log("Open chat:", chatId, "in project:", projectId)
-          }
+          availableChats={[...pinnedChats, ...chats].filter((chat) => !chat.projectId)}
+          onAddChat={handleAddChatToProject}
+          onSelectChat={(_, selectedChatId) => {
+            setProjectsOpen(false);
+            navigate(`/chat/${selectedChatId}`);
+          }}
         />
       )}
 

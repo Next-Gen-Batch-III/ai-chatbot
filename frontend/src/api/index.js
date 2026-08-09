@@ -9,3 +9,4 @@ export {
   toggleChatPin,
 } from "./chats";
 export { createMessage, getChatMessages } from "./messages";
+export { createProject, getProjects } from "./projects";

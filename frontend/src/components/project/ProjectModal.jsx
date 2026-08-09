@@ -8,17 +8,20 @@ export default function ProjectsModal({
   projects = [],
   onClose,
   onCreateProject,
-  onSendInProject,
+  availableChats,
+  onAddChat,
   onSelectChat,
 }) {
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [creating, setCreating] = useState(false);
 
-  const activeProject = projects.find((p) => p.id === activeProjectId);
+  const activeProject = projects.find((project) => project.id === activeProjectId);
 
-  const handleCreate = (name) => {
-    onCreateProject?.(name);
-    setCreating(false);
+  const handleCreate = async (name) => {
+    const created = await onCreateProject?.(name);
+    if (created) {
+      setCreating(false);
+    }
   };
 
   return (
@@ -28,20 +31,21 @@ export default function ProjectsModal({
     >
       <div
         className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
         {activeProject ? (
           <ProjectDetail
             project={activeProject}
             onBack={() => setActiveProjectId(null)}
             onSelectChat={(chatId) => onSelectChat?.(activeProject.id, chatId)}
-            onSend={(message) => onSendInProject?.(activeProject.id, message)}
+            availableChats={availableChats}
+            onAddChat={(chatId) => onAddChat?.(activeProject.id, chatId)}
           />
         ) : (
           <>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <h2 className="text-sm font-bold text-gray-900">Projects</h2>
+                <h2 className="text-sm font-bold text-black">Projects</h2>
               </div>
               <button
                 onClick={onClose}
