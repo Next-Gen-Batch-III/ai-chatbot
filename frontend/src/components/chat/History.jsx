@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect, useRef} from "react";
 import {
   X,
   MessageSquare,
@@ -17,7 +17,35 @@ export default function History({
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [chats, setChats] = useState([]);
 
+  const nextCursorRef = useRef(null);
+  const isLoadingRef = useRef(false);
+
+  const observerRef = useRef(null);
+
   const toast = useToast();
+
+  const loadChats = async () => {
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+
+    try {
+      const cursor = nextCursorRef.current;
+      const response = await getChats(cursor ? { cursor, limit: 10 } : {limit: 10});
+      const { chats , nextCursor } = response.data.data;
+
+      setChats((prevChats) => (cursor ? [...prevChats, ...chats] : chats));
+      nextCursorRef.current = nextCursor;
+    } catch (error) {
+      toast.error(
+        error.message ?? "Failed to load chats."
+      );
+    } finally {
+      isLoadingRef.current = false;
+    }
+  };
+
+     
+
 
   const navigate = useNavigate();
 
@@ -31,19 +59,22 @@ export default function History({
   ];
 
   useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        const response = await getChats();
-        setChats(response.data.data.chats);
-      } catch (error) {
-        toast.error(
-          error.message ?? "Failed to load chats."
-        );
-      }
-    };
-
-    fetchChats();
+    loadChats();
   }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && nextCursorRef.current) {
+        loadChats();
+      }
+    }, { threshold: 0.5 });
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => observer.disconnect();
+  });
 
   /*
    * Filter chats 
@@ -399,6 +430,7 @@ export default function History({
               </p>
             </div>
           )}
+          <div className="h-px" ref={observerRef}></div>
         </div>
       </div>
     </div>
