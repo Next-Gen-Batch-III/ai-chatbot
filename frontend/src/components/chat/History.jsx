@@ -7,6 +7,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { getChats } from "../../api/index.js";
+import { useToast } from "../../hooks/useToast.js";
 
 export default function History({
   onClose,
@@ -15,6 +16,8 @@ export default function History({
   const [showFilter, setShowFilter] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [chats, setChats] = useState([]);
+
+  const toast = useToast();
 
   const navigate = useNavigate();
 
@@ -33,7 +36,9 @@ export default function History({
         const response = await getChats();
         setChats(response.data.data.chats);
       } catch (error) {
-        console.error("Error fetching chats:", error);
+        toast.error(
+          error.message ?? "Failed to load chats."
+        );
       }
     };
 

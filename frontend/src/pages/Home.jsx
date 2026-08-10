@@ -1,5 +1,5 @@
 import { useUser } from "@clerk/clerk-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/layout/Sidebar";
@@ -38,23 +38,23 @@ export default function Home() {
 
   const recentChats = chats.filter((chat) => !chat.pinned);
 
-  useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        const response = await getChats({ limit: 10 });
-        if (response.data.data.chats) {
-          setChats(response.data.data.chats.filter((chat) => !chat.isPinned));
-          setPinnedChats(
-            response.data.data.chats.filter((chat) => chat.isPinned),
-          );
-        }
-      } catch (error) {
-        toast.error(error.message ?? "Failed to load chats.");
+  const fetchChats = useCallback(async () => {
+    try {
+      const response = await getChats({ projectId: "null", limit: 10 });
+      if (response.data.data.chats) {
+        setChats(response.data.data.chats.filter((chat) => !chat.isPinned));
+        setPinnedChats(
+          response.data.data.chats.filter((chat) => chat.isPinned),
+        );
       }
-    };
+    } catch (error) {
+      toast.error(error.message ?? "Failed to load chats.");
+    }
+  }, []);
 
+  useEffect(() => {
     fetchChats();
-  }, [chatId]);
+  }, [fetchChats]);
 
   const handleTogglePin = async (chatId) => {
     try {
@@ -147,10 +147,10 @@ export default function Home() {
       const updatedChat = response.data.data;
 
       setChats((previousChats) =>
-        previousChats.map((chat) => (chat.id === chatId ? updatedChat : chat)),
+        previousChats.filter((chat) => chat.id !== updatedChat.id),
       );
       setPinnedChats((previousChats) =>
-        previousChats.map((chat) => (chat.id === chatId ? updatedChat : chat)),
+        previousChats.filter((chat) => chat.id !== updatedChat.id),
       );
       setProjects((previousProjects) =>
         previousProjects.map((project) =>
@@ -245,9 +245,6 @@ export default function Home() {
           signal: controller.signal,
           onEvent(event) {
             if (event.type === "start" && !chatId) {
-              // Don't navigate yet — that would remount the component and
-              // trigger the cleanup abort, killing the stream mid-way.
-              // Store the chatId and navigate after the stream finishes.
               newChatIdRef.current = event.chatId;
             }
 
@@ -273,6 +270,12 @@ export default function Home() {
       setMessages((prev) => prev.filter((m) => m.id !== assistantId));
       toast.error(err.message ?? "Failed to get a response.");
     } finally {
+      const isFirstInPinnedChats = pinnedChats[0]?.id === chatId;
+      const isFirstInRecentChats = recentChats[0]?.id === chatId;
+
+      if(!isFirstInPinnedChats && !isFirstInRecentChats) {
+        fetchChats();
+      }
       setIsStreaming(false);
     }
   };
