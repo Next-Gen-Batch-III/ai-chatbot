@@ -3,24 +3,27 @@ import { PenIcon, Check } from "lucide-react";
 
 const ChatInput = ({ onSend }) => {
   const [inputValue, setInputValue] = useState("");
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (inputValue.trim()) {
-      onSend?.(inputValue);
+      onSend?.(inputValue.trim());
       setInputValue("");
     }
   };
+
   const hasText = inputValue.trim().length > 0;
+
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-xl">
-      <div className="flex items-center rounded-[28px] bg-gray-200 px-2 py-1.5 shadow-sm">
+      <div className="flex items-center gap-2 rounded-full bg-gray-200 px-3 py-2 shadow-sm">
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Ask anything about DMIL"
-          className="flex-1 bg-transparent px-3 text-sm outline-none"
+          className="flex-1 bg-transparent px-3 text-sm text-gray-950 placeholder:text-gray-500 outline-none dark:text-gray-950 dark:placeholder:text-gray-500"
         />
 
         {/* Submit button */}
@@ -28,9 +31,7 @@ const ChatInput = ({ onSend }) => {
           type="submit"
           disabled={!hasText}
           className={`rounded-full p-2 transition ${
-            hasText
-              ? "bg-[#3B98FF] hover:bg-[#2B7CD9]"
-              : "bg-[#3B98FF]"
+            hasText ? "bg-[#3B98FF] hover:bg-[#2B7CD9]" : "bg-[#3B98FF]"
           }`}
         >
           {hasText ? (
@@ -45,4 +46,3 @@ const ChatInput = ({ onSend }) => {
 };
 
 export default ChatInput;
-
