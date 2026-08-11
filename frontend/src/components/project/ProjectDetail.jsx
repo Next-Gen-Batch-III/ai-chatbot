@@ -20,7 +20,7 @@ export default function ProjectDetail({
         <h2 className="text-sm font-bold text-black">{project.name}</h2>
       </div>
 
-      <div className="mt-3 flex-1 space-y-0.5 overflow-y-auto">
+      <div className="mt-3 flex-1 space-y-0.5 overflow-y-scroll max-h-[400px]">
         {project.chats.length === 0 ? (
           <p className="px-1 py-4 text-sm text-gray-400">No chats in this project yet.</p>
         ) : (

@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 
-export default function AccountCard() {
+export default function AccountCard({ onClose }) {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
 
   if (!isLoaded) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg font-sans">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg font-sans" onClick={(e) => e.stopPropagation()}>
         {/* Title */}
         <h2 className="text-2xl font-bold text-gray-900 mb-1">
           Account Details
@@ -37,6 +37,7 @@ export default function AccountCard() {
         <div className="flex justify-end gap-3">
           <button
             type="button"
+            onClick={onClose}
             className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Cancel

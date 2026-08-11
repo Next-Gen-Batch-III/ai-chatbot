@@ -10,6 +10,7 @@ import ProjectModal from "../components/project/ProjectModal";
 import History from "../components/chat/History";
 import AccountCard from "../components/auth/AccountCard.jsx";
 import MessageBox from "../components/chat/MessageBox";
+import MessageSkeleton from "../components/chat/MessageSkeleton";
 
 import {
   createProject,
@@ -100,6 +101,7 @@ export default function Home() {
     imageUrl: user?.imageUrl,
   };
 
+  
   useEffect(() => {
     if (!projectsOpen) return;
 
@@ -166,6 +168,7 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
   const [loadedChatId, setLoadedChatId] = useState(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const abortRef = useRef(null);
   const scrollRef = useRef(null);
@@ -189,7 +192,12 @@ export default function Home() {
     newChatIdRef.current = null;
 
     const fetchMessages = async () => {
-      if (!chatId) return;
+      if (!chatId) {
+        setIsLoading(false);
+        return;
+      };
+
+      setIsLoading(true);
 
       try {
         const response = await getChatMessages(chatId);
@@ -204,6 +212,10 @@ export default function Home() {
       } catch (error) {
         if (isCurrentChat) {
           toast.error(error.message ?? "Failed to load messages.");
+        }
+      } finally {
+        if (isCurrentChat) {
+          setIsLoading(false);
         }
       }
     };
@@ -285,7 +297,7 @@ export default function Home() {
     navigate("/");
   };
 
-  const activeMessages = loadedChatId === chatId ? messages : [];
+  const activeMessages = !chatId ? messages : (loadedChatId === chatId ? messages : []);
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -303,61 +315,43 @@ export default function Home() {
       />
 
       <main className="flex min-h-screen min-w-0 flex-1 flex-col">
-        {activeMessages.length === 0 ? (
-          /* ================= EMPTY CHAT ================= */
-          <div
-            className="
-              flex flex-1 flex-col items-center justify-end
-              gap-6 px-6 pb-10
-              md:justify-center md:pb-0
-            "
-          >
-            {/* Welcome */}
+        {!chatId ? (
+          /* ================= WELCOME SCREEN ("/") ================= */
+          <div className="flex flex-1 flex-col items-center justify-end gap-6 px-6 pb-10 md:justify-center md:pb-0">
             <WelcomeMessage name={userData.name} />
-
-            {/* Chat Input */}
             <ChatInput onSend={handleSend} disabled={isStreaming} />
-
-            {/* Quick Actions */}
             <div className="self-start sm:self-auto">
               <QuickActions
                 actions={[
-                  {
-                    label: "Explain a concept",
-                    onClick: () => handleQuickAction("Explain a concept"),
-                  },
-                  {
-                    label: "Project guide",
-                    onClick: () => handleQuickAction("Project guide"),
-                  },
-                  {
-                    label: "Give me project ideas",
-                    onClick: () => handleQuickAction("Give me project ideas"),
-                  },
+                  { label: "Explain a concept", onClick: () => handleQuickAction("Explain a concept") },
+                  { label: "Project guide", onClick: () => handleQuickAction("Project guide") },
+                  { label: "Give me project ideas", onClick: () => handleQuickAction("Give me project ideas") },
                 ]}
               />
             </div>
           </div>
         ) : (
-          /* ================= CHAT MODE ================= */
+          /* ================= CHAT SCREEN  ================= */
           <div className="flex h-screen flex-col overflow-y-hidden">
-            {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
               <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
-                {activeMessages.map((message) => (
-                  <MessageBox
-                    key={message.id}
-                    message={message.content}
-                    sender={message.type}
-                  />
-                ))}
+                {isLoading ? (
+                    <MessageSkeleton />
+                ) : (
+                  messages.map((message) => (
+                    <MessageBox
+                      key={message.id}
+                      message={message.content}
+                      sender={message.type}
+                    />
+                  ))
+                )}
               </div>
             </div>
-
-            {/* Chat Input - stays at bottom */}
+              
             <div className="shrink-0 px-6 pb-6">
               <div className="mx-auto w-full max-w-3xl">
-                <ChatInput onSend={handleSend} disabled={isStreaming} />
+                <ChatInput onSend={handleSend} disabled={isStreaming || isLoading} />
               </div>
             </div>
           </div>

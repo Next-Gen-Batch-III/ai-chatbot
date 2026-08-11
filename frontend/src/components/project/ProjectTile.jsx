@@ -6,7 +6,7 @@ export default function ProjectTile({ variant = "project", label, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex h-[90px] w-[90px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl px-2 text-center transition-colors
+      className={`flex h-22.5 w-22.5 shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl px-2 text-center transition-colors
         ${
           isAdd
             ? "border-2 border-dashed border-gray-200 hover:border-[#3B98FF] hover:bg-blue-50"
