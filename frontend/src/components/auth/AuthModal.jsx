@@ -3,6 +3,7 @@ import { useSignIn, useSignUp } from "@clerk/clerk-react";
 import LoginForm from "./LoginForm";
 import SignUpForm from "./SignUpForm";
 import OtpVerification from "./OtpVerification";
+import ForgotPassword from "./ForgotPassword";
 
 export default function AuthModal({ onClose, initialStep = "signup" }) {
   const [step, setStep] = useState(initialStep);
@@ -98,12 +99,16 @@ export default function AuthModal({ onClose, initialStep = "signup" }) {
           <LoginForm
             onSubmit={handleLogin}
             onSwitchToSignUp={() => goToStep("signup")}
-            onForgotPassword={() => {
-
-            }}
+            onForgotPassword={() => goToStep("forgot-password")}
             loading={loading}
             error={error}
-          />    
+          />
+        )}    
+        {step === "forgot-password" && (
+          <ForgotPassword
+            onReturnToLogin={() => goToStep("login")}
+            onSendCode={()=> goToStep ("otp")}
+          />
         )}
 
         {step === "signup" && (

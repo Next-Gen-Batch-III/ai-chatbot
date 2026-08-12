@@ -4,6 +4,10 @@ import "./App.css";
 import Home from "./pages/Home.jsx";
 import { configureAuthInterceptor } from "./api/client";
 import { configureSseAuth } from "./api/sseClient";
+import ForgotPassword from "./components/auth/ForgotPassword.jsx";
+import  LoginForm from "./components/auth/LoginForm.jsx";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AuthModel from "./components/auth/AuthModal.jsx";
 
 function App() {
   const { getToken } = useAuth();
@@ -16,7 +20,18 @@ function App() {
       cleanupSse();
     };
   }, [getToken]);
+    return (
+    <BrowserRouter>
+      <Routes>
+        <Route path ="/" element= {<Home />}/>
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/Auth" element={<AuthModel />} />
+      </Routes>
+    </BrowserRouter>
+  );
 
-  return <Home />;
+   
+
 }
 export default App;
