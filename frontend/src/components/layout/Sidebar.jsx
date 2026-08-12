@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import LogoImg from "../../assets/images/logo.png";
-import SigninCard from "../auth/SigninCard";
+import LogoImg from "../../assets/images/NGEP_BOT_LOGO.png";
 import { useUser } from "@clerk/clerk-react";
 
 import {
@@ -74,7 +73,7 @@ const Sidebar = ({
               <img
                 src={LogoImg}
                 alt="Logo"
-                className="h-24 w-auto"
+                className="h-10 w-auto"
               />
             </div>
           )}

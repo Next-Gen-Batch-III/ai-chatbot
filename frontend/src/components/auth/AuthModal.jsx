@@ -28,7 +28,6 @@ export default function AuthModal({
     isLoaded: signUpLoaded,
   } = useSignUp();
 
-
   const resetError = () => {
     setError("");
   };
@@ -170,9 +169,12 @@ export default function AuthModal({
     }
   };
 
+  // =========================
+  // FORGOT PASSWORD
+  // =========================
+
   const handleForgotPassword = (email) => {
     setPendingEmail(email);
-
     goToStep("reset-otp");
   };
 
@@ -215,10 +217,9 @@ export default function AuthModal({
       "
       onClick={onClose}
     >
-
       {/* ===================
-      MOBILE WHITE WAVY AREA
-      =======================*/}
+          MOBILE WHITE WAVY AREA
+          =================== */}
 
       <div
         className="
@@ -252,7 +253,6 @@ export default function AuthModal({
         "
         onClick={(e) => e.stopPropagation()}
       >
-
         {/* =====================================
             LOGIN
             ===================================== */}

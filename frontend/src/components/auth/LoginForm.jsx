@@ -21,7 +21,7 @@ export default function LoginForm({
   };
 
   return (
-    <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white text-center shadow-xl">
+    <div className="w-95 max-w-[92vw] overflow-hidden rounded-2xl bg-white text-center shadow-md ring-1 ring-black/5">
       <div className="p-6">
         <img src={LogoImg} alt="Logo" className="mx-auto h-10 w-auto" />
 
@@ -75,7 +75,7 @@ export default function LoginForm({
           <button
             type="submit"
             disabled={!canSubmit || loading}
-            className="w-full bg-[#3B98FF] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2f86e6] disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full border border-[#3B98FF] bg-[#3B98FF] py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(59,152,255,0.35)] transition-colors hover:bg-[#2f86e6] focus:outline-none focus:ring-2 focus:ring-white/60 disabled:cursor-not-allowed"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
