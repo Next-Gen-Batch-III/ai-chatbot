@@ -225,7 +225,7 @@ export default function AuthModal({
           absolute
           bottom-0
           left-0
-          h-[45%]
+          h-[60%]
           w-full
           bg-white
           md:hidden
