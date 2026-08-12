@@ -7,7 +7,7 @@ import QuickActions from "../components/chat/QuickActions";
 import WelcomeMessage from "../components/chat/WelcomeMessage";
 import ProjectModal from "../components/project/ProjectModal";
 import History from "../components/chat/History";
-import SignInCard from "../components/auth/Signincard";
+import AuthModal from "../components/auth/AuthModal";
 import MessageBox from "../components/chat/MessageBox";
 
 const SAMPLE_PROJECTS = [
@@ -32,7 +32,7 @@ const SAMPLE_PROJECTS = [
 ];
 
 export default function Home({ onSend }) {
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
 
   /* Sidebar */
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -154,7 +154,11 @@ export default function Home({ onSend }) {
         pinnedChats={pinnedChats}
         recentChats={recentChats}
         onTogglePin={handleTogglePin}
-        onSignInClick={() => setSignInOpen(true)}
+        onSignInClick={() => {
+          if (!isSignedIn) {
+            setSignInOpen(true);
+          }
+        }}
       />
 
       <main
@@ -237,25 +241,10 @@ export default function Home({ onSend }) {
       {/* History Modal */}
       {historyOpen && <History onClose={() => setHistoryOpen(false)} />}
       {signInOpen && (
-        <div
-          className="
-            fixed inset-0 z-[100]
-            flex items-center justify-center
-            bg-black/40 backdrop-blur-sm
-            px-4
-          "
-          onClick={() => setSignInOpen(false)}
-        >
-          <div onClick={(e) => e.stopPropagation()}>
-            <SignInCard
-              onClose={() => setSignInOpen(false)}
-              onContinueWithGoogle={() => {
-                setSignInOpen(false);
-                openSignIn();
-              }}
-            />
-          </div>
-        </div>
+        <AuthModal
+          onClose={() => setSignInOpen(false)}
+          initialStep="signup"
+        />
       )}
     </div>
   );

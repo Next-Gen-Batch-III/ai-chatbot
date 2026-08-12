@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import LogoImg from "../../assets/images/logo.png";
-import SigninCard from "../auth/SigninCard";
 import { useUser } from "@clerk/clerk-react";
 
 import {

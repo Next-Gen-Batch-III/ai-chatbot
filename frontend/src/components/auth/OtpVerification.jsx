@@ -36,7 +36,7 @@ export default function OtpVerification({
   };
 
   return (
-    <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
+    <div className="w-95 max-w-[92vw] rounded-2xl bg-white p-6 text-center shadow-md ring-1 ring-black/5">
       <div className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
         <MailCheck size={22} className="text-[#3B98FF]" />
       </div>
@@ -68,8 +68,8 @@ export default function OtpVerification({
         <button
           type="submit"
           disabled={!canSubmit || loading}
-          className="mt-5 w-full bg-[#3B98FF] py-2.5 text-sm font-medium text-white
-                     transition-colors hover:bg-[#2f86e6] disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-5 w-full rounded-xl border border-[#3B98FF] bg-[#3B98FF] py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(59,152,255,0.35)]
+                     transition-colors hover:bg-[#2f86e6] disabled:cursor-not-allowed"
         >
           {loading ? "Verifying..." : "Verify Email"}
         </button>

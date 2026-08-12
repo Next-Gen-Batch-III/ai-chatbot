@@ -21,7 +21,7 @@ export default function SignUpForm({ onSubmit, onSwitchToLogin, loading, error }
   };
 
   return (
-    <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
+    <div className="w-95 max-w-[92vw] rounded-2xl bg-white p-6 text-center shadow-md ring-1 ring-black/5">
       <img src={LogoImg} alt="Logo" className="mx-auto h-10 w-auto" />
 
       <h3 className="mt-3 text-base font-bold text-gray-900">Get start with your account</h3>
@@ -122,8 +122,8 @@ export default function SignUpForm({ onSubmit, onSwitchToLogin, loading, error }
         <button
           type="submit"
           disabled={!canSubmit || loading}
-          className="w-full bg-[#3B98FF] py-2.5 text-sm font-medium text-white
-                     transition-colors hover:bg-[#2f86e6] disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full border border-[#3B98FF] bg-[#3B98FF] py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(59,152,255,0.35)]
+                     transition-colors hover:bg-[#2f86e6] disabled:cursor-not-allowed"
         >
           {loading ? "Creating account..." : "Create Account"}
         </button>

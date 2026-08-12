@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSignIn, useSignUp } from "@clerk/clerk-react";
+import { X } from "lucide-react";
 import LoginForm from "./LoginForm";
 import SignUpForm from "./SignUpForm";
 import OtpVerification from "./OtpVerification";
@@ -90,10 +91,21 @@ export default function AuthModal({ onClose, initialStep = "signup" }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      onClick={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto bg-[#3B98FF]"
     >
-      <div onClick={(e) => e.stopPropagation()}>
+      <div className="relative min-h-screen w-full px-4 py-6 sm:px-8">
+        <div className="absolute right-4 top-6 sm:right-8">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/30"
+            aria-label="Close auth"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex min-h-screen items-center justify-center">
         {step === "login" && (
           <LoginForm
             onSubmit={handleLogin}
@@ -125,6 +137,8 @@ export default function AuthModal({ onClose, initialStep = "signup" }) {
             error={error}
           />
         )}
+
+        </div>
       </div>
     </div>
   );
