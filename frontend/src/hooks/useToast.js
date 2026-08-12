@@ -12,3 +12,5 @@ export function useToast() {
     info:    (msg, duration) => ctx.addToast(msg, "info",    duration),
   };
 }
+
+export default useToast;

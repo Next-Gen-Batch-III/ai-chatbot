@@ -1,19 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiX } from "react-icons/fi";
 import ProjectTile from "./ProjectTile";
 import NewProjectForm from "./NewProjectForm";
 import ProjectDetail from "./ProjectDetail";
+import ProjectSkeleton from "./ProjectSkeleton.jsx";
+import { getProjects } from "../../api/index.js";
+import useToast from "../../hooks/useToast.js";
 
 export default function ProjectsModal({
-  projects = [],
   onClose,
   onCreateProject,
   availableChats,
   onAddChat,
   onSelectChat,
 }) {
+
+  const toast = useToast();
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [creating, setCreating] = useState(false);
+
+
+  const [ projects, setProjects ] = useState([]);
 
   const activeProject = projects.find((project) => project.id === activeProjectId);
 
@@ -23,6 +30,26 @@ export default function ProjectsModal({
       setCreating(false);
     }
   };
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadProjects = async () => {
+     setIsLoading(true);
+    try {
+      const response = await getProjects();
+      const projectsData = response.data.data;
+      console.log("Fetched projects:", projectsData);
+      setProjects(projectsData);
+    } catch (error) {
+      toast.error(error.message ?? "Failed to load projects.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
 
   return (
     <div
@@ -59,6 +86,8 @@ export default function ProjectsModal({
             <div className="mt-4">
               {creating ? (
                 <NewProjectForm onCreate={handleCreate} onCancel={() => setCreating(false)} />
+              ) : ( isLoading ? (
+                <ProjectSkeleton />
               ) : (
                 <div className="flex flex-wrap gap-3">
                   <ProjectTile variant="add" label="Add new" onClick={() => setCreating(true)} />
@@ -66,11 +95,12 @@ export default function ProjectsModal({
                     <ProjectTile
                       key={project.id}
                       variant="project"
-                      label={project.name}
+                      label={project.title}
                       onClick={() => setActiveProjectId(project.id)}
                     />
                   ))}
                 </div>
+              )
               )}
             </div>
           </>

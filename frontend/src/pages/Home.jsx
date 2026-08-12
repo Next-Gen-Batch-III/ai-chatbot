@@ -41,7 +41,7 @@ export default function Home() {
 
   const fetchChats = useCallback(async () => {
     try {
-      const response = await getChats({ projectId: "null", limit: 10 });
+      const response = await getChats({ limit: 10 });
       if (response.data.data.chats) {
         setChats(response.data.data.chats.filter((chat) => !chat.isPinned));
         setPinnedChats(
@@ -165,6 +165,7 @@ export default function Home() {
       toast.error(error.message ?? "Failed to add chat to project.");
     }
   };
+
   const [messages, setMessages] = useState([]);
   const [loadedChatId, setLoadedChatId] = useState(null);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -291,13 +292,12 @@ export default function Home() {
       setIsStreaming(false);
     }
   };
+
   const handleNewChat = () => {
     setMessages([]);
     setLoadedChatId(null);
     navigate("/");
   };
-
-  const activeMessages = !chatId ? messages : (loadedChatId === chatId ? messages : []);
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -315,7 +315,7 @@ export default function Home() {
       />
 
       <main className="flex min-h-screen min-w-0 flex-1 flex-col">
-        {!chatId ? (
+        {!chatId && messages.length === 0 ? (
           /* ================= WELCOME SCREEN ("/") ================= */
           <div className="flex flex-1 flex-col items-center justify-end gap-6 px-6 pb-10 md:justify-center md:pb-0">
             <WelcomeMessage name={userData.name} />
@@ -361,7 +361,6 @@ export default function Home() {
       {/* Project Modal */}
       {projectsOpen && (
         <ProjectModal
-          projects={projects}
           onClose={() => setProjectsOpen(false)}
           onCreateProject={handleCreateProject}
           availableChats={[...pinnedChats, ...chats].filter((chat) => !chat.projectId)}
