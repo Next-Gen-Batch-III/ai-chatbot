@@ -26,7 +26,6 @@ const Sidebar = ({
 }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // Pinned and Recents open/close
   const [isPinnedOpen, setIsPinnedOpen] = useState(true);
   const [isRecentOpen, setIsRecentOpen] = useState(true);
 

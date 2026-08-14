@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSignUp } from "@clerk/clerk-react";
-import SignUpForm from "../../components/auth/SignUpForm";
+import SignUpForm from "../components/auth/SignUpForm";
 
 export default function SignUpPage() {
   const navigate = useNavigate();
