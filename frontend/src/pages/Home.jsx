@@ -1,5 +1,6 @@
 import { useUser } from "@clerk/clerk-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/layout/Sidebar";
 import ChatInput from "../components/chat/ChatInput";
@@ -7,7 +8,6 @@ import QuickActions from "../components/chat/QuickActions";
 import WelcomeMessage from "../components/chat/WelcomeMessage";
 import ProjectModal from "../components/project/ProjectModal";
 import History from "../components/chat/History";
-import AuthModal from "../components/auth/AuthModal";
 import MessageBox from "../components/chat/MessageBox";
 
 const SAMPLE_PROJECTS = [
@@ -33,6 +33,7 @@ const SAMPLE_PROJECTS = [
 
 export default function Home({ onSend }) {
   const { user, isSignedIn } = useUser();
+  const navigate = useNavigate();
 
   /* Sidebar */
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -71,27 +72,22 @@ export default function Home({ onSend }) {
       ),
     );
   };
-  const [signInOpen, setSignInOpen] = useState(false);
   /* Project Modal */
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [projects, setProjects] = useState(SAMPLE_PROJECTS);
 
-  /* History Modal */
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  /* Quick Actions */
   const handleQuickAction = (label) => {
     handleSend(label);
   };
 
-  /* User Data */
   const userData = {
     name: user?.firstName,
     email: user?.emailAddresses?.[0]?.emailAddress,
     imageUrl: user?.imageUrl,
   };
 
-  /* Create Project */
   const handleCreateProject = (name) => {
     setProjects((prev) => [
       ...prev,
@@ -103,7 +99,6 @@ export default function Home({ onSend }) {
     ]);
   };
 
-  /* Send Message Inside Project */
   const handleSendInProject = (projectId, message) => {
     setProjects((prev) =>
       prev.map((project) =>
@@ -144,7 +139,6 @@ export default function Home({ onSend }) {
 
   return (
     <div className="flex min-h-screen w-full bg-white">
-      {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen((open) => !open)}
@@ -156,7 +150,7 @@ export default function Home({ onSend }) {
         onTogglePin={handleTogglePin}
         onSignInClick={() => {
           if (!isSignedIn) {
-            setSignInOpen(true);
+            navigate("/signup");
           }
         }}
       />
@@ -165,7 +159,6 @@ export default function Home({ onSend }) {
         className="flex min-h-screen min-w-0 flex-1 flex-col"
       >
         {messages.length === 0 ? (
-          /* ================= EMPTY CHAT ================= */
           <div
             className="
               flex flex-1 flex-col items-center justify-end
@@ -173,13 +166,10 @@ export default function Home({ onSend }) {
               md:justify-center md:pb-0
             "
           >
-            {/* Welcome */}
             <WelcomeMessage name={userData.name} />
 
-            {/* Chat Input */}
             <ChatInput onSend={handleSend} />
 
-            {/* Quick Actions */}
             <div className="self-start sm:self-auto">
               <QuickActions
                 actions={[
@@ -200,7 +190,6 @@ export default function Home({ onSend }) {
             </div>
           </div>
         ) : (
-          /* ================= CHAT MODE ================= */
           <div className="flex min-h-screen flex-col">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-6 py-6">
@@ -215,7 +204,6 @@ export default function Home({ onSend }) {
               </div>
             </div>
 
-            {/* Chat Input - stays at bottom */}
             <div className="shrink-0 px-6 pb-6">
               <div className="mx-auto w-full max-w-3xl">
                 <ChatInput onSend={handleSend} />
@@ -225,7 +213,6 @@ export default function Home({ onSend }) {
         )}
       </main>
 
-      {/* Project Modal */}
       {projectsOpen && (
         <ProjectModal
           projects={projects}
@@ -238,14 +225,7 @@ export default function Home({ onSend }) {
         />
       )}
 
-      {/* History Modal */}
       {historyOpen && <History onClose={() => setHistoryOpen(false)} />}
-      {signInOpen && (
-        <AuthModal
-          onClose={() => setSignInOpen(false)}
-          initialStep="signup"
-        />
-      )}
     </div>
   );
 }
