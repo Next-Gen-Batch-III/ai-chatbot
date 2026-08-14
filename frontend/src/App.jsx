@@ -7,6 +7,9 @@ import { configureSseAuth } from "./api/sseClient";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthModel from "./components/auth/AuthModal.jsx";
 import ResetPassword from "./components/auth/ResetPassword.jsx";
+import KnowledgeBase from "./components/dashboard/KnowledgeBase.jsx";
+import AIInstructions from "./components/dashboard/AiInstructions.jsx";
+import DashboardHeader from "./components/dashboard/DashboardHeader.jsx";
 
 function App() {
   const { getToken } = useAuth();
@@ -25,6 +28,10 @@ function App() {
         <Route path ="/" element= {<Home />}/>
         <Route path="/Auth" element={<AuthModel />} />
         <Route path="/ResetPassword" element={<ResetPassword />} />
+        <Route path = "/KnowledgeBase" element ={<KnowledgeBase/>}/>
+        <Route path = "/AIInstructions" element ={<AIInstructions/>}/>
+        <Route path = "/Dashboard" element ={<DashboardHeader/>}/>
+
       </Routes>
     </BrowserRouter>
   );
